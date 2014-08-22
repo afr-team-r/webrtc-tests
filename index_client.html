@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta name="keywords" content="JavaScript, WebRTC" />
+<meta name="description" content="WebRTC codelab" />
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1">
+
+<title>Video Client</title>
+
+<style>
+</style>
+
+    <script src="adapter.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+
+</head>
+
+<body>
+
+  <video id="remoteVideo" autoplay muted></video>
+
+  <div>
+    <button id="hangupButton">Hang Up</button>
+  </div>
+
+<script>
+
+var remoteVideo = document.getElementById("remoteVideo");
+var hangupButton = document.getElementById("hangupButton");
+
+hangupButton.disabled = false;
+hangupButton.onclick = hangup;
+
+var socket = io.connect();
+
+var servers = {
+  'iceServers': [
+    {
+      'url': 'stun:stun.l.google.com:19302'
+    }
+  ]
+};
+    
+var remotePeerConnection = new RTCPeerConnection(null);
+remotePeerConnection.onaddstream = gotRemoteStream;
+remotePeerConnection.onicecandidate = gotLocalIceCandidate;
+	
+socket.on("ice", function(candidate) {
+	console.log(candidate);
+	remotePeerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+});
+
+socket.on("desc", function(offer) {
+
+	console.log(offer);
+	
+	remotePeerConnection.setRemoteDescription(new RTCSessionDescription(offer), function() {
+    remotePeerConnection.createAnswer(function(answer) {
+      remotePeerConnection.setLocalDescription(new RTCSessionDescription(answer), function() {
+        socket.emit("desc", answer);
+      }, handleError);
+    }, handleError);
+  }, handleError);
+  
+});
+
+function trace(text) {
+  console.log((performance.now() / 1000).toFixed(3) + ": " + text);
+}
+
+function hangup() {
+  trace("Ending call");
+  remotePeerConnection.close();
+  remotePeerConnection = null;
+}
+
+function gotRemoteStream(event){
+  remoteVideo.src = URL.createObjectURL(event.stream);
+  trace("Received remote stream");
+}
+
+function gotRemoteDescription(description){
+  remotePeerConnection.setLocalDescription(description);
+  socket.emit("desc", description);
+}
+
+function gotLocalIceCandidate(event){
+  if (event.candidate) {
+    socket.emit("ice", event.candidate);
+    trace("Local ICE candidate: \n" + event.candidate.candidate);
+  }
+}
+  
+function handleError(){}
+
+</script>
+
+</body>
+
+</html>
