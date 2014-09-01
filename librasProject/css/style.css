@@ -1,0 +1,27 @@
+.content {    
+    width:98%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.contact {    
+    
+    display: inline-block;
+    width: 5%;
+}
+
+.videos {    
+    margin: 2% auto;
+}
+
+#localVideo {
+    width: 35%;
+    height: auto;
+    border: 2px solid blue;
+}
+
+#remoteVideo {
+    width: 60%;
+    height: auto;
+    border: 2px solid orange;
+}

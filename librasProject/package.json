@@ -1,0 +1,8 @@
+{
+    "name": "librasProject",
+    "version": "0.0.1",
+    "description": "First simple version of librasProject",
+    "dependencies": {
+        "socket.io": "~1.0.6"
+    }
+}
